@@ -1,6 +1,11 @@
 'use client';
-
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import buttonTwo from 'public/images/button-two.png';
+import downArrow from 'public/images/down-arrow.png';
+import forwardArrow from 'public/images/forward-arrow.png';
+import downForwardArrow from 'public/images/down-forward-arrow.png';
+import neutral from 'public/images/neutral.png';
 
 const MAX_FRAMES = 999;
 
@@ -110,41 +115,50 @@ export default function Page() {
     }, []);
 
     const TRACKED_BUTTONS = [
-        { index: 13, label: 'd' },
-        { index: 15, label: 'f' },
-        { index: 3, label: '2' }
+        { index: 13, label: 'd', img: 'downArrow' },
+        { index: 15, label: 'f', img: 'forwardArrow' },
+        { index: 3, label: '2', img: 'buttonTwo' }
     ];
 
     return (
         <div className="flex flex-col gap-12 sm:gap-16">
             <section className="flex flex-col gap-4">
-                <h1 className="text-xl font-bold">
+                <h1 className="text-lg font-bold pb-12">
                     {gamepadState.connected
                         ? `Connected: ${gamepadState.gamepadId}`
                         : 'Please connect a gamepad or press any button to start.'}
                 </h1>
                 {gamepadState.connected && (
                     <>
-                        <div className="text-lg font-bold">{gamepadState.currentFrame}</div>
+                        <div className="text-lg font-bold">Frame Counter: {gamepadState.currentFrame}</div>
                         <div className="grid grid-cols-3 gap-2">
-                            {TRACKED_BUTTONS.map((button) => (
-                                <div
-                                    key={button.index}
-                                    className={`p-2 border rounded text-black ${
-                                        gamepadState.buttons[button.index] ? 'bg-green-500' : 'bg-gray-200'
-                                    }`}
-                                >
-                                    {button.label}
-                                    {gamepadState.buttons[button.index] && (
-                                        <span className="text-xs block">
-                                            Frame: {gamepadState.lastPressFrame[button.index]}
-                                        </span>
-                                    )}
-                                </div>
-                            ))}
+                            {TRACKED_BUTTONS.map((button) => {
+                                return (
+                                    <div
+                                        key={button.index}
+                                        className={`p-2 border rounded text-black ${
+                                            gamepadState.buttons[button.index] ? 'bg-green-500' : 'bg-gray-200'
+                                        }`}
+                                    >
+                                        {button.label}
+                                        {gamepadState.buttons[button.index] && (
+                                            <span className="text-xs block">
+                                                Frame: {gamepadState.lastPressFrame[button.index]}
+                                            </span>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div className="flex items-center justify-center gap-4 mt-4">
+                            <Image width={75} height={75} src={forwardArrow} alt="Forward arrow" />
+                            <Image width={75} height={75} src={neutral} alt="Tekken neutral star" />
+                            <Image width={75} height={75} src={downArrow} alt="Down arrow" />
+                            <Image width={75} height={75} src={downForwardArrow} alt="Down forward arrow" />
+                            <Image width={75} height={75} src={buttonTwo} alt="Tekken button two" />
                         </div>
                         <div className="mt-4">
-                            <h2 className="font-bold">Recent Simultaneous Presses:</h2>
+                            <h2 className="font-bold">Successful EWGFs:</h2>
                             <ol>
                                 {gamepadState.simultaneousPresses
                                     .filter((press) =>
