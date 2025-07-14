@@ -22,7 +22,6 @@ export default function Page() {
 
     useEffect(() => {
         const handleGamepadConnect = (event) => {
-            console.log(event.gamepad);
             setGamepadState((prev) => ({
                 ...prev,
                 connected: true,
@@ -55,12 +54,7 @@ export default function Page() {
                     let newFrame = prev.currentFrame;
                     const newLastPressFrame = [...prev.lastPressFrame];
                     const newSimultaneousPresses = [...prev.simultaneousPresses];
-                    let newHasStarted = prev.hasStarted;
-
-                    // Start counting on first button press
-                    if (!newHasStarted && newButtons.some((button) => button)) {
-                        newHasStarted = true;
-                    }
+                    let newHasStarted = newButtons.some((button) => button);
 
                     // Only increment frame if we've started counting
                     if (newHasStarted) {
@@ -123,10 +117,8 @@ export default function Page() {
     return (
         <div className="flex flex-col gap-12 sm:gap-16">
             <section className="flex flex-col gap-4">
-                <h1 className="text-lg font-bold pb-12">
-                    {gamepadState.connected
-                        ? `Connected: ${gamepadState.gamepadId}`
-                        : 'Please connect a gamepad or press any button to start.'}
+                <h1 className="text-lg font-bold pb-12 flex flex-col items-center">
+                    {!gamepadState.connected && <>Connect a controller, then press any button to start.</>}
                 </h1>
                 {gamepadState.connected && (
                     <>
