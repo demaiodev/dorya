@@ -2,16 +2,24 @@
 
 import { useState, useEffect } from 'react';
 
+const MAX_FRAMES = 999;
+const INACTIVITY_RESET_FRAMES = 60; // Reset after 1 second of no button presses
+
 export default function Page() {
     const [gamepadState, setGamepadState] = useState({
         connected: false,
         gamepadId: '',
-        buttons: []
+        buttons: [],
+        currentFrame: 0,
+        lastPressFrame: new Array(20).fill(-1),
+        simultaneousPresses: [],
+        lastActivityFrame: 0
     });
 
     useEffect(() => {
         const handleGamepadConnect = (event) => {
-            setGamepadState(prev => ({
+            console.log(event.gamepad);
+            setGamepadState((prev) => ({
                 ...prev,
                 connected: true,
                 gamepadId: event.gamepad.id
@@ -22,22 +30,70 @@ export default function Page() {
             setGamepadState({
                 connected: false,
                 gamepadId: '',
-                buttons: []
+                buttons: [],
+                currentFrame: 0,
+                lastPressFrame: new Array(20).fill(-1),
+                simultaneousPresses: [],
+                lastActivityFrame: 0
             });
         };
 
-        window.addEventListener("gamepadconnected", handleGamepadConnect);
-        window.addEventListener("gamepaddisconnected", handleGamepadDisconnect);
+        window.addEventListener('gamepadconnected', handleGamepadConnect);
+        window.addEventListener('gamepaddisconnected', handleGamepadDisconnect);
 
         const updateGamepadState = () => {
             const gamepads = navigator.getGamepads();
             const gamepad = gamepads[0];
 
             if (gamepad) {
-                setGamepadState(prev => ({
-                    ...prev,
-                    buttons: gamepad.buttons.map(button => button.pressed)
-                }));
+                setGamepadState((prev) => {
+                    const newButtons = gamepad.buttons.map((button) => button.pressed);
+                    let newFrame = prev.currentFrame;
+                    const newLastPressFrame = [...prev.lastPressFrame];
+                    const newSimultaneousPresses = [...prev.simultaneousPresses];
+
+                    // Check for any button activity
+                    const hasActivity = newButtons.some((button) => button);
+                    const inactiveFrames = newFrame - prev.lastActivityFrame;
+
+                    // Reset frame counter if inactive for too long or exceeding max
+                    if ((!hasActivity && inactiveFrames > INACTIVITY_RESET_FRAMES) || newFrame >= MAX_FRAMES) {
+                        newFrame = 0;
+                        newLastPressFrame.fill(-1);
+                    } else {
+                        newFrame++;
+                    }
+
+                    // Update last press frame for newly pressed buttons
+                    newButtons.forEach((pressed, index) => {
+                        if (pressed && !prev.buttons[index]) {
+                            newLastPressFrame[index] = newFrame;
+
+                            // Check for simultaneous presses
+                            newButtons.forEach((otherPressed, otherIndex) => {
+                                if (
+                                    otherIndex !== index &&
+                                    otherPressed &&
+                                    newLastPressFrame[otherIndex] === newFrame
+                                ) {
+                                    newSimultaneousPresses.push({
+                                        buttons: [index, otherIndex],
+                                        frame: newFrame
+                                    });
+                                }
+                            });
+                        }
+                    });
+
+                    return {
+                        ...prev,
+                        buttons: newButtons,
+                        currentFrame: newFrame,
+                        lastPressFrame: newLastPressFrame,
+                        simultaneousPresses: newSimultaneousPresses.slice(-10),
+                        lastActivityFrame: hasActivity ? newFrame : prev.lastActivityFrame
+                    };
+                });
             }
 
             requestAnimationFrame(updateGamepadState);
@@ -46,29 +102,56 @@ export default function Page() {
         updateGamepadState();
 
         return () => {
-            window.removeEventListener("gamepadconnected", handleGamepadConnect);
-            window.removeEventListener("gamepaddisconnected", handleGamepadDisconnect);
+            window.removeEventListener('gamepadconnected', handleGamepadConnect);
+            window.removeEventListener('gamepaddisconnected', handleGamepadDisconnect);
         };
     }, []);
+
+    const TRACKED_BUTTONS = [
+        { index: 3, label: '2' },
+        { index: 13, label: 'd' },
+        { index: 15, label: 'f' }
+    ];
 
     return (
         <div className="flex flex-col gap-12 sm:gap-16">
             <section className="flex flex-col gap-4">
                 <h1 className="text-xl font-bold">
-                    {gamepadState.connected 
-                        ? `Connected: ${gamepadState.gamepadId}` 
-                        : 'No gamepad connected'}
+                    {gamepadState.connected
+                        ? `Connected: ${gamepadState.gamepadId}`
+                        : 'Please connect a gamepad or press any button to start.'}
                 </h1>
-                <div className="grid grid-cols-4 gap-2">
-                    {gamepadState.buttons.map((pressed, index) => (
-                        <div 
-                            key={index}
-                            className={`p-2 border rounded text-black ${pressed ? 'bg-green-500' : 'bg-gray-200'}`}
-                        >
-                            Button {index}
+                {gamepadState.connected && (
+                    <>
+                        <div className="grid grid-cols-3 gap-2">
+                            {TRACKED_BUTTONS.map((button) => (
+                                <div
+                                    key={button.index}
+                                    className={`p-2 border rounded text-black ${
+                                        gamepadState.buttons[button.index] ? 'bg-green-500' : 'bg-gray-200'
+                                    }`}
+                                >
+                                    {button.label}
+                                    {gamepadState.buttons[button.index] && (
+                                        <span className="text-xs block">
+                                            Frame: {gamepadState.lastPressFrame[button.index]}
+                                        </span>
+                                    )}
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
+                        <div className="mt-4">
+                            <h2 className="font-bold">Recent Simultaneous Presses:</h2>
+                            <ul>
+                                {gamepadState.simultaneousPresses.filter((press) =>
+                                    press.buttons.every((btn) =>
+                                        TRACKED_BUTTONS.some((tracked) => tracked.index === btn)
+                                    )
+                                )}
+                            </ul>
+                        </div>
+                    </>
+                )}
             </section>
         </div>
     );
