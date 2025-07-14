@@ -3,16 +3,14 @@ import Link from 'next/link';
 import logo from 'public/images/dorya.png';
 
 const navItems = [
-    { linkText: 'Home', href: '/' },
+    { linkText: 'Practice', href: '/' },
     { linkText: 'Controller Setup', href: '/controller' }
 ];
 
 export function Header() {
     return (
         <nav className="flex flex-wrap items-center gap-4 pt-6 pb-12 sm:pt-12 md:pb-24">
-            <Link href="/">
-                <Image width={75} height={75} src={logo} alt="Kazuya picture" />
-            </Link>
+            <Image width={75} height={75} src={logo} alt="Kazuya picture" />
             {!!navItems?.length && (
                 <ul className="flex flex-wrap gap-x-4 gap-y-1">
                     {navItems.map((item, index) => (

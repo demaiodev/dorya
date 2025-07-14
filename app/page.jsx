@@ -125,9 +125,7 @@ export default function Page() {
                 </h1>
                 {gamepadState.connected && (
                     <>
-                        <div className="text-lg text-black bg-gray-100 p-2 rounded">
-                            Frame: {gamepadState.currentFrame}
-                        </div>
+                        <div className="text-lg font-bold">{gamepadState.currentFrame}</div>
                         <div className="grid grid-cols-3 gap-2">
                             {TRACKED_BUTTONS.map((button) => (
                                 <div
@@ -147,7 +145,7 @@ export default function Page() {
                         </div>
                         <div className="mt-4">
                             <h2 className="font-bold">Recent Simultaneous Presses:</h2>
-                            <ul>
+                            <ol>
                                 {gamepadState.simultaneousPresses
                                     .filter((press) =>
                                         press.buttons.every((btn) =>
@@ -160,11 +158,11 @@ export default function Page() {
                                         );
                                         return (
                                             <li key={i}>
-                                                {labels.join(' & ')} on frame {press.frame}
+                                                {i + 1}. {labels.join(' & ')} on frame {press.frame}
                                             </li>
                                         );
                                     })}
-                            </ul>
+                            </ol>
                         </div>
                     </>
                 )}

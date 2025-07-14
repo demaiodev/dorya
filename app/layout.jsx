@@ -4,8 +4,7 @@ import { Header } from '../components/header';
 
 export const metadata = {
     title: {
-        template: '%s | EWGF',
-        default: 'EWGF'
+        default: 'DORYA - A Mishima Practice Tool'
     }
 };
 
