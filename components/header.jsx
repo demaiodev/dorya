@@ -1,17 +1,17 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import netlifyLogo from 'public/netlify-logo.svg';
+import logo from 'public/images/dorya.png';
 
 const navItems = [
     { linkText: 'Home', href: '/' },
-    { linkText: 'Controller Setup', href: '/controller' },
+    { linkText: 'Controller Setup', href: '/controller' }
 ];
 
 export function Header() {
     return (
         <nav className="flex flex-wrap items-center gap-4 pt-6 pb-12 sm:pt-12 md:pb-24">
             <Link href="/">
-                <Image src={netlifyLogo} alt="Netlify logo" />
+                <Image width={75} height={75} src={logo} alt="Kazuya picture" />
             </Link>
             {!!navItems?.length && (
                 <ul className="flex flex-wrap gap-x-4 gap-y-1">

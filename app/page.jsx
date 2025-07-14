@@ -12,7 +12,7 @@ export default function Page() {
         currentFrame: 0,
         lastPressFrame: new Array(20).fill(-1),
         simultaneousPresses: [],
-        hasStarted: false // New flag to track if counting has started
+        hasStarted: false
     });
 
     useEffect(() => {
@@ -61,7 +61,6 @@ export default function Page() {
                     if (newHasStarted) {
                         if (newFrame >= MAX_FRAMES) {
                             newFrame = 0;
-                            // newLastPressFrame.fill(-1);
                         } else {
                             newFrame++;
                         }
@@ -111,9 +110,9 @@ export default function Page() {
     }, []);
 
     const TRACKED_BUTTONS = [
-        { index: 3, label: '2' },
         { index: 13, label: 'd' },
-        { index: 15, label: 'f' }
+        { index: 15, label: 'f' },
+        { index: 3, label: '2' }
     ];
 
     return (
