@@ -8,6 +8,8 @@ import downForwardArrow from 'public/images/down-forward-arrow.png';
 import neutral from 'public/images/neutral.png';
 
 const MAX_FRAMES = 999;
+const FRAME_RATE = 60;
+const FRAME_DURATION = 1000 / FRAME_RATE;
 
 export default function Page() {
     const [gamepadState, setGamepadState] = useState({
@@ -44,63 +46,69 @@ export default function Page() {
         window.addEventListener('gamepadconnected', handleGamepadConnect);
         window.addEventListener('gamepaddisconnected', handleGamepadDisconnect);
 
-        const updateGamepadState = () => {
-            const gamepads = navigator.getGamepads();
-            const gamepad = gamepads[0];
+        let lastFrameTime = 0;
 
-            if (gamepad) {
-                setGamepadState((prev) => {
-                    const newButtons = gamepad.buttons.map((button) => button.pressed);
-                    let newFrame = prev.currentFrame;
-                    const newLastPressFrame = [...prev.lastPressFrame];
-                    const newSimultaneousPresses = [...prev.simultaneousPresses];
-                    let newHasStarted = newButtons.some((button) => button);
+        const updateGamepadState = (currentTime) => {
+            if (currentTime - lastFrameTime >= FRAME_DURATION) {
+                const gamepads = navigator.getGamepads();
+                const gamepad = gamepads[0];
 
-                    // Only increment frame if we've started counting
-                    if (newHasStarted) {
-                        if (newFrame >= MAX_FRAMES) {
-                            newFrame = 0;
-                        } else {
-                            newFrame++;
+                if (gamepad) {
+                    setGamepadState((prev) => {
+                        const newButtons = gamepad.buttons.map((button) => button.pressed);
+                        let newFrame = prev.currentFrame;
+                        const newLastPressFrame = [...prev.lastPressFrame];
+                        const newSimultaneousPresses = [...prev.simultaneousPresses];
+                        let newHasStarted = newButtons.some((button) => button);
+
+                        // Only increment frame if we've started counting
+                        if (newHasStarted) {
+                            if (newFrame >= MAX_FRAMES) {
+                                newFrame = 0;
+                            } else {
+                                newFrame++;
+                            }
                         }
-                    }
 
-                    // Update last press frame for newly pressed buttons
-                    newButtons.forEach((pressed, index) => {
-                        if (pressed && !prev.buttons[index]) {
-                            newLastPressFrame[index] = newFrame;
+                        // Update last press frame for newly pressed buttons
+                        newButtons.forEach((pressed, index) => {
+                            if (pressed && !prev.buttons[index]) {
+                                newLastPressFrame[index] = newFrame;
 
-                            // Check for simultaneous presses
-                            newButtons.forEach((otherPressed, otherIndex) => {
-                                if (
-                                    otherIndex !== index &&
-                                    otherPressed &&
-                                    newLastPressFrame[otherIndex] === newFrame
-                                ) {
-                                    newSimultaneousPresses.push({
-                                        buttons: [index, otherIndex],
-                                        frame: newFrame
-                                    });
-                                }
-                            });
-                        }
+                                // Check for simultaneous presses
+                                newButtons.forEach((otherPressed, otherIndex) => {
+                                    if (
+                                        otherIndex !== index &&
+                                        otherPressed &&
+                                        newLastPressFrame[otherIndex] === newFrame
+                                    ) {
+                                        newSimultaneousPresses.push({
+                                            buttons: [index, otherIndex],
+                                            frame: newFrame
+                                        });
+                                    }
+                                });
+                            }
+                        });
+
+                        return {
+                            ...prev,
+                            buttons: newButtons,
+                            currentFrame: newFrame,
+                            lastPressFrame: newLastPressFrame,
+                            simultaneousPresses: newSimultaneousPresses.slice(-10),
+                            hasStarted: newHasStarted
+                        };
                     });
 
-                    return {
-                        ...prev,
-                        buttons: newButtons,
-                        currentFrame: newFrame,
-                        lastPressFrame: newLastPressFrame,
-                        simultaneousPresses: newSimultaneousPresses.slice(-10),
-                        hasStarted: newHasStarted
-                    };
-                });
+                    lastFrameTime = currentTime;
+                }
             }
 
             requestAnimationFrame(updateGamepadState);
         };
 
-        updateGamepadState();
+        requestAnimationFrame(updateGamepadState);
 
         return () => {
             window.removeEventListener('gamepadconnected', handleGamepadConnect);
