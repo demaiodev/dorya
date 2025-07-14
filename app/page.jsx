@@ -143,11 +143,22 @@ export default function Page() {
                         <div className="mt-4">
                             <h2 className="font-bold">Recent Simultaneous Presses:</h2>
                             <ul>
-                                {gamepadState.simultaneousPresses.filter((press) =>
-                                    press.buttons.every((btn) =>
-                                        TRACKED_BUTTONS.some((tracked) => tracked.index === btn)
+                                {gamepadState.simultaneousPresses
+                                    .filter((press) =>
+                                        press.buttons.every((btn) =>
+                                            TRACKED_BUTTONS.some((tracked) => tracked.index === btn)
+                                        )
                                     )
-                                )}
+                                    .map((press, i) => {
+                                        const labels = press.buttons.map(
+                                            (btn) => TRACKED_BUTTONS.find((tracked) => tracked.index === btn)?.label
+                                        );
+                                        return (
+                                            <li key={i}>
+                                                {labels.join(' & ')} on frame {press.frame}
+                                            </li>
+                                        );
+                                    })}
                             </ul>
                         </div>
                     </>
