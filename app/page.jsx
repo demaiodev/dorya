@@ -6,6 +6,7 @@ import downArrow from 'public/images/down-arrow.png';
 import forwardArrow from 'public/images/forward-arrow.png';
 import downForwardArrow from 'public/images/down-forward-arrow.png';
 import neutral from 'public/images/neutral.png';
+import sugarcoat from 'public/images/sugarcoat.jpg';
 
 const MAX_FRAMES = 999;
 const FRAME_RATE = 60;
@@ -21,6 +22,16 @@ export default function Page() {
         simultaneousPresses: [],
         hasStarted: false
     });
+    const [showEffect, setShowEffect] = useState(false);
+
+    useEffect(() => {
+        if (showEffect) {
+            const timer = setTimeout(() => {
+                setShowEffect(false);
+            }, 250);
+            return () => clearTimeout(timer);
+        }
+    }, [showEffect]);
 
     useEffect(() => {
         const handleGamepadConnect = (event) => {
@@ -61,7 +72,6 @@ export default function Page() {
                         const newSimultaneousPresses = [...prev.simultaneousPresses];
                         let newHasStarted = newButtons.some((button) => button);
 
-                        // Only increment frame if we've started counting
                         if (newHasStarted) {
                             if (newFrame >= MAX_FRAMES) {
                                 newFrame = 0;
@@ -70,12 +80,10 @@ export default function Page() {
                             }
                         }
 
-                        // Update last press frame for newly pressed buttons
                         newButtons.forEach((pressed, index) => {
                             if (pressed && !prev.buttons[index]) {
                                 newLastPressFrame[index] = newFrame;
 
-                                // Check for simultaneous presses
                                 newButtons.forEach((otherPressed, otherIndex) => {
                                     if (
                                         otherIndex !== index &&
@@ -86,6 +94,7 @@ export default function Page() {
                                             buttons: [index, otherIndex],
                                             frame: newFrame
                                         });
+                                        setShowEffect(true);
                                     }
                                 });
                             }
@@ -122,14 +131,35 @@ export default function Page() {
         { index: 3, label: '2', img: 'buttonTwo' }
     ];
 
+    const fadeAnimation = {
+        opacity: showEffect ? 1 : 0,
+        transition: 'opacity 250ms ease-in-out',
+        position: 'relative',
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+    };
+
     return (
         <div className="flex flex-col gap-12 sm:gap-16">
             <section className="flex flex-col gap-4">
-                <h1 className="text-lg font-bold pb-12 flex flex-col items-center">
+                <h1 className="text-lg font-bold flex flex-col items-center">
                     {!gamepadState.connected && <>Connect a controller, then press any button to start.</>}
                 </h1>
                 {gamepadState.connected && (
                     <>
+                        <div style={fadeAnimation}>
+                            <Image
+                                src={sugarcoat}
+                                alt="Sugarcoat effect"
+                                width={200}
+                                height={200}
+                                className={`transition-opacity duration-250 ${
+                                    showEffect ? 'opacity-100' : 'opacity-0'
+                                }`}
+                            />
+                        </div>
                         <div className="text-lg font-bold">Frame Counter: {gamepadState.currentFrame}</div>
                         <div className="grid grid-cols-3 gap-2">
                             {TRACKED_BUTTONS.map((button) => {
@@ -150,15 +180,15 @@ export default function Page() {
                                 );
                             })}
                         </div>
-                        <div className="flex items-center justify-center gap-4 mt-4">
+                        <div className="flex items-center justify-center gap-4 mt-2">
                             <Image width={75} height={75} src={forwardArrow} alt="Forward arrow" />
                             <Image width={75} height={75} src={neutral} alt="Tekken neutral star" />
                             <Image width={75} height={75} src={downArrow} alt="Down arrow" />
                             <Image width={75} height={75} src={downForwardArrow} alt="Down forward arrow" />
                             <Image width={75} height={75} src={buttonTwo} alt="Tekken button two" />
                         </div>
-                        <div className="mt-4">
-                            <h2 className="font-bold">Successful EWGFs:</h2>
+                        <div className="mt-2">
+                            <p className="font-bold">Successful EWGFs:</p>
                             <ol>
                                 {gamepadState.simultaneousPresses
                                     .filter((press) =>
