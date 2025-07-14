@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 
 const MAX_FRAMES = 999;
-const INACTIVITY_RESET_FRAMES = 60; // Reset after 1 second of no button presses
 
 export default function Page() {
     const [gamepadState, setGamepadState] = useState({
@@ -13,7 +12,7 @@ export default function Page() {
         currentFrame: 0,
         lastPressFrame: new Array(20).fill(-1),
         simultaneousPresses: [],
-        lastActivityFrame: 0
+        hasStarted: false // New flag to track if counting has started
     });
 
     useEffect(() => {
@@ -34,7 +33,7 @@ export default function Page() {
                 currentFrame: 0,
                 lastPressFrame: new Array(20).fill(-1),
                 simultaneousPresses: [],
-                lastActivityFrame: 0
+                hasStarted: false
             });
         };
 
@@ -51,17 +50,21 @@ export default function Page() {
                     let newFrame = prev.currentFrame;
                     const newLastPressFrame = [...prev.lastPressFrame];
                     const newSimultaneousPresses = [...prev.simultaneousPresses];
+                    let newHasStarted = prev.hasStarted;
 
-                    // Check for any button activity
-                    const hasActivity = newButtons.some((button) => button);
-                    const inactiveFrames = newFrame - prev.lastActivityFrame;
+                    // Start counting on first button press
+                    if (!newHasStarted && newButtons.some((button) => button)) {
+                        newHasStarted = true;
+                    }
 
-                    // Reset frame counter if inactive for too long or exceeding max
-                    if ((!hasActivity && inactiveFrames > INACTIVITY_RESET_FRAMES) || newFrame >= MAX_FRAMES) {
-                        newFrame = 0;
-                        newLastPressFrame.fill(-1);
-                    } else {
-                        newFrame++;
+                    // Only increment frame if we've started counting
+                    if (newHasStarted) {
+                        if (newFrame >= MAX_FRAMES) {
+                            newFrame = 0;
+                            // newLastPressFrame.fill(-1);
+                        } else {
+                            newFrame++;
+                        }
                     }
 
                     // Update last press frame for newly pressed buttons
@@ -91,7 +94,7 @@ export default function Page() {
                         currentFrame: newFrame,
                         lastPressFrame: newLastPressFrame,
                         simultaneousPresses: newSimultaneousPresses.slice(-10),
-                        lastActivityFrame: hasActivity ? newFrame : prev.lastActivityFrame
+                        hasStarted: newHasStarted
                     };
                 });
             }
@@ -123,6 +126,9 @@ export default function Page() {
                 </h1>
                 {gamepadState.connected && (
                     <>
+                        <div className="text-lg text-black bg-gray-100 p-2 rounded">
+                            Frame: {gamepadState.currentFrame}
+                        </div>
                         <div className="grid grid-cols-3 gap-2">
                             {TRACKED_BUTTONS.map((button) => (
                                 <div
