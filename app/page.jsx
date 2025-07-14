@@ -1,6 +1,6 @@
 'use client';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import buttonTwo from 'public/images/button-two.png';
 import downArrow from 'public/images/down-arrow.png';
 import forwardArrow from 'public/images/forward-arrow.png';
@@ -23,6 +23,17 @@ export default function Page() {
         hasStarted: false
     });
     const [showEffect, setShowEffect] = useState(false);
+    const audioRef = useRef(null);
+
+    useEffect(() => {
+        audioRef.current = new Audio('/sounds/soundeffect.mp3');
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current = null;
+            }
+        };
+    }, []);
 
     useEffect(() => {
         if (showEffect) {
@@ -95,6 +106,13 @@ export default function Page() {
                                             frame: newFrame
                                         });
                                         setShowEffect(true);
+                                        if (audioRef.current) {
+                                            audioRef.current.pause();
+                                            audioRef.current.currentTime = 0;
+                                            audioRef.current
+                                                .play()
+                                                .catch((e) => console.log('Audio playback failed:', e));
+                                        }
                                     }
                                 });
                             }
@@ -138,7 +156,8 @@ export default function Page() {
         width: '100%',
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        marginBottom: '2rem'
     };
 
     return (
@@ -180,15 +199,15 @@ export default function Page() {
                                 );
                             })}
                         </div>
-                        <div className="flex items-center justify-center gap-4 mt-2">
+                        <div className="flex items-center justify-center gap-4 mt-4">
                             <Image width={75} height={75} src={forwardArrow} alt="Forward arrow" />
                             <Image width={75} height={75} src={neutral} alt="Tekken neutral star" />
                             <Image width={75} height={75} src={downArrow} alt="Down arrow" />
                             <Image width={75} height={75} src={downForwardArrow} alt="Down forward arrow" />
                             <Image width={75} height={75} src={buttonTwo} alt="Tekken button two" />
                         </div>
-                        <div className="mt-2">
-                            <p className="font-bold">Successful EWGFs:</p>
+                        <div className="mt-4">
+                            <h2 className="font-bold">Successful EWGFs:</h2>
                             <ol>
                                 {gamepadState.simultaneousPresses
                                     .filter((press) =>
