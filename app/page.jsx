@@ -156,8 +156,7 @@ export default function Page() {
         width: '100%',
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: '2rem'
+        alignItems: 'center'
     };
 
     return (
@@ -206,8 +205,8 @@ export default function Page() {
                             <Image width={75} height={75} src={downForwardArrow} alt="Down forward arrow" />
                             <Image width={75} height={75} src={buttonTwo} alt="Tekken button two" />
                         </div>
-                        <div className="mt-4">
-                            <h2 className="font-bold">Successful EWGFs:</h2>
+                        <div className="mt-4 text-sm">
+                            <span className="font-bold">History:</span>
                             <ol>
                                 {gamepadState.simultaneousPresses
                                     .filter((press) =>
