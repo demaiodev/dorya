@@ -18,6 +18,11 @@ const SUGARCOAT_DIMENSIONS = {
     width: 200,
     height: 200
 };
+const TRACKED_BUTTONS = [
+    { index: 13, label: 'd', img: downArrow },
+    { index: 15, label: 'f', img: forwardArrow },
+    { index: 3, label: '2', img: buttonTwo }
+];
 
 export default function Page() {
     // State management
@@ -129,6 +134,14 @@ export default function Page() {
 
                                 // Check for other buttons pressed on the same frame
                                 currentButtonStates.forEach((isOtherButtonPressed, otherButtonIndex) => {
+                                    if (!isOtherButtonPressed || otherButtonIndex === buttonIndex) return;
+
+                                    // Debugging output
+                                    console.log('isPressed:', isPressed);
+                                    console.log('buttonIndex:', buttonIndex);
+                                    console.log('isOtherButtonPressed:', isOtherButtonPressed);
+                                    console.log('otherButtonIndex:', otherButtonIndex);
+
                                     const isSameButton = buttonIndex === otherButtonIndex;
                                     const pressedOnSameFrame = buttonPressFrames[otherButtonIndex] === currentFrame;
 
@@ -173,12 +186,6 @@ export default function Page() {
         };
     }, []);
 
-    const TRACKED_BUTTONS = [
-        { index: 13, label: 'd', img: 'downArrow' },
-        { index: 15, label: 'f', img: 'forwardArrow' },
-        { index: 3, label: '2', img: 'buttonTwo' }
-    ];
-
     const fadeAnimation = {
         opacity: showEffect ? 1 : 0,
         transition: `opacity ${FADE_DURATION}ms ease-in-out`,
@@ -197,6 +204,7 @@ export default function Page() {
                 </h1>
                 {gamepadState.connected && (
                     <>
+                        <div className="text-lg font-bold">Frame Counter: {gamepadState.currentFrame}</div>
                         <div style={fadeAnimation}>
                             <Image
                                 src={sugarcoat}
@@ -208,30 +216,29 @@ export default function Page() {
                                 }`}
                             />
                         </div>
-                        <div className="text-lg font-bold">Frame Counter: {gamepadState.currentFrame}</div>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="flex flex-wrap gap-4 justify-center">
                             {TRACKED_BUTTONS.map((button) => (
-                                <div
-                                    key={button.index}
-                                    className={`p-2 border rounded text-black ${
-                                        gamepadState.buttons[button.index] ? 'bg-green-500' : 'bg-gray-200'
-                                    }`}
-                                >
-                                    {button.label}
-                                    {gamepadState.buttons[button.index] && (
-                                        <span className="text-xs block">
-                                            Frame: {gamepadState.lastPressFrame[button.index]}
-                                        </span>
-                                    )}
+                                <div key={button.index}>
+                                    <div
+                                        className={`p-4 border rounded text-black flex items-center justify-center w-50 ${
+                                            gamepadState.buttons[button.index] ? 'bg-indigo-500' : 'bg-indigo-900'
+                                        }`}
+                                    >
+                                        <Image width={100} height={100} src={button.img} alt={button.img} />
+                                    </div>
+
+                                    <span className="text-xs block ">
+                                        Last pressed on frame: {gamepadState.lastPressFrame[button.index]}
+                                    </span>
                                 </div>
                             ))}
                         </div>
                         <div className="flex items-center justify-center gap-4 mt-4">
-                            <Image width={75} height={75} src={forwardArrow} alt="Forward arrow" />
-                            <Image width={75} height={75} src={neutral} alt="Tekken neutral star" />
-                            <Image width={75} height={75} src={downArrow} alt="Down arrow" />
-                            <Image width={75} height={75} src={downForwardArrow} alt="Down forward arrow" />
-                            <Image width={75} height={75} src={buttonTwo} alt="Tekken button two" />
+                            <Image width={50} height={50} src={forwardArrow} alt="Forward arrow" />
+                            <Image width={50} height={50} src={neutral} alt="Tekken neutral star" />
+                            <Image width={50} height={50} src={downArrow} alt="Down arrow" />
+                            <Image width={50} height={50} src={downForwardArrow} alt="Down forward arrow" />
+                            <Image width={50} height={50} src={buttonTwo} alt="Tekken button two" />
                         </div>
                         <div className="mt-4 text-sm">
                             <span className="font-bold">History:</span>
