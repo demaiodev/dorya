@@ -1,4 +1,5 @@
 'use client';
+
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import buttonTwo from 'public/images/button-two.png';
@@ -8,11 +9,18 @@ import downForwardArrow from 'public/images/down-forward-arrow.png';
 import neutral from 'public/images/neutral.png';
 import sugarcoat from 'public/images/sugarcoat.jpg';
 
+// Constants
 const MAX_FRAMES = 999;
 const FRAME_RATE = 60;
 const FRAME_DURATION = 1000 / FRAME_RATE;
+const FADE_DURATION = 250;
+const SUGARCOAT_DIMENSIONS = {
+    width: 200,
+    height: 200
+};
 
 export default function Page() {
+    // State management
     const [gamepadState, setGamepadState] = useState({
         connected: false,
         gamepadId: '',
@@ -25,6 +33,7 @@ export default function Page() {
     const [showEffect, setShowEffect] = useState(false);
     const audioRef = useRef(null);
 
+    // Initialize audio
     useEffect(() => {
         audioRef.current = new Audio('/sounds/soundeffect.mp3');
         return () => {
@@ -35,15 +44,17 @@ export default function Page() {
         };
     }, []);
 
+    // Handle effect animation timing
     useEffect(() => {
         if (showEffect) {
             const timer = setTimeout(() => {
                 setShowEffect(false);
-            }, 250);
+            }, FADE_DURATION);
             return () => clearTimeout(timer);
         }
     }, [showEffect]);
 
+    // Main gamepad handling
     useEffect(() => {
         const handleGamepadConnect = (event) => {
             setGamepadState((prev) => ({
@@ -65,11 +76,25 @@ export default function Page() {
             });
         };
 
+        // Event listeners for gamepad connection
         window.addEventListener('gamepadconnected', handleGamepadConnect);
         window.addEventListener('gamepaddisconnected', handleGamepadDisconnect);
 
         let lastFrameTime = 0;
 
+        // Handle visual and audio effects
+        const handleSimultaneousPressEffects = () => {
+            setShowEffect(true);
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+                const storedVolume = localStorage.getItem('volume');
+                audioRef.current.volume = storedVolume ? parseFloat(storedVolume) : 0.75;
+                audioRef.current.play().catch((e) => console.log('Audio playback failed:', e));
+            }
+        };
+
+        // Main update loop
         const updateGamepadState = (currentTime) => {
             if (currentTime - lastFrameTime >= FRAME_DURATION) {
                 const gamepads = navigator.getGamepads();
@@ -77,56 +102,59 @@ export default function Page() {
 
                 if (gamepad) {
                     setGamepadState((prev) => {
-                        const newButtons = gamepad.buttons.map((button) => button.pressed);
-                        let newFrame = prev.currentFrame;
-                        const newLastPressFrame = [...prev.lastPressFrame];
-                        const newSimultaneousPresses = [...prev.simultaneousPresses];
-                        let newHasStarted = newButtons.some((button) => button);
+                        // Map gamepad button states to boolean array
+                        const currentButtonStates = gamepad.buttons.map((button) => button.pressed);
 
-                        if (newHasStarted) {
-                            if (newFrame >= MAX_FRAMES) {
-                                newFrame = 0;
-                            } else {
-                                newFrame++;
-                            }
+                        // Frame management
+                        let currentFrame = prev.currentFrame;
+                        const hasAnyButtonPressed = currentButtonStates.some((isPressed) => isPressed);
+
+                        // Update frame counter when buttons are pressed
+                        if (hasAnyButtonPressed) {
+                            currentFrame = currentFrame >= MAX_FRAMES ? 0 : currentFrame + 1;
                         }
 
-                        newButtons.forEach((pressed, index) => {
-                            if (pressed && !prev.buttons[index]) {
-                                newLastPressFrame[index] = newFrame;
+                        // Track when each button was last pressed
+                        const buttonPressFrames = [...prev.lastPressFrame];
+                        const recentSimultaneousPresses = [...prev.simultaneousPresses];
 
-                                newButtons.forEach((otherPressed, otherIndex) => {
-                                    if (
-                                        otherIndex !== index &&
-                                        otherPressed &&
-                                        newLastPressFrame[otherIndex] === newFrame
-                                    ) {
-                                        newSimultaneousPresses.push({
-                                            buttons: [index, otherIndex],
-                                            frame: newFrame
-                                        });
-                                        setShowEffect(true);
-                                        if (audioRef.current) {
-                                            audioRef.current.pause();
-                                            audioRef.current.currentTime = 0;
-                                            const storedVolume = localStorage.getItem('volume');
-                                            audioRef.current.volume = storedVolume ? parseFloat(storedVolume) : 0.75;
-                                            audioRef.current
-                                                .play()
-                                                .catch((e) => console.log('Audio playback failed:', e));
-                                        }
+                        // Detect newly pressed buttons and check for simultaneous presses
+                        currentButtonStates.forEach((isPressed, buttonIndex) => {
+                            const wasButtonPreviouslyPressed = prev.buttons[buttonIndex];
+                            const isNewPress = isPressed && !wasButtonPreviouslyPressed;
+
+                            if (isNewPress) {
+                                // Record the frame when this button was pressed
+                                buttonPressFrames[buttonIndex] = currentFrame;
+
+                                // Check for other buttons pressed on the same frame
+                                currentButtonStates.forEach((isOtherButtonPressed, otherButtonIndex) => {
+                                    const isSameButton = buttonIndex === otherButtonIndex;
+                                    const pressedOnSameFrame = buttonPressFrames[otherButtonIndex] === currentFrame;
+
+                                    if (!isSameButton && isOtherButtonPressed && pressedOnSameFrame) {
+                                        // Record simultaneous press
+                                        const simultaneousPress = {
+                                            buttons: [buttonIndex, otherButtonIndex],
+                                            frame: currentFrame
+                                        };
+                                        recentSimultaneousPresses.push(simultaneousPress);
+                                        handleSimultaneousPressEffects();
                                     }
                                 });
                             }
                         });
 
+                        // Keep only the 10 most recent simultaneous presses
+                        const latestPresses = recentSimultaneousPresses.slice(-10);
+
                         return {
                             ...prev,
-                            buttons: newButtons,
-                            currentFrame: newFrame,
-                            lastPressFrame: newLastPressFrame,
-                            simultaneousPresses: newSimultaneousPresses.slice(-10),
-                            hasStarted: newHasStarted
+                            buttons: currentButtonStates,
+                            currentFrame,
+                            lastPressFrame: buttonPressFrames,
+                            simultaneousPresses: latestPresses,
+                            hasStarted: hasAnyButtonPressed
                         };
                     });
 
@@ -153,7 +181,7 @@ export default function Page() {
 
     const fadeAnimation = {
         opacity: showEffect ? 1 : 0,
-        transition: 'opacity 250ms ease-in-out',
+        transition: `opacity ${FADE_DURATION}ms ease-in-out`,
         position: 'relative',
         width: '100%',
         display: 'flex',
@@ -173,32 +201,30 @@ export default function Page() {
                             <Image
                                 src={sugarcoat}
                                 alt="Sugarcoat effect"
-                                width={200}
-                                height={200}
-                                className={`transition-opacity duration-250 ${
+                                width={SUGARCOAT_DIMENSIONS.width}
+                                height={SUGARCOAT_DIMENSIONS.height}
+                                className={`transition-opacity duration-${FADE_DURATION} ${
                                     showEffect ? 'opacity-100' : 'opacity-0'
                                 }`}
                             />
                         </div>
                         <div className="text-lg font-bold">Frame Counter: {gamepadState.currentFrame}</div>
                         <div className="grid grid-cols-3 gap-2">
-                            {TRACKED_BUTTONS.map((button) => {
-                                return (
-                                    <div
-                                        key={button.index}
-                                        className={`p-2 border rounded text-black ${
-                                            gamepadState.buttons[button.index] ? 'bg-green-500' : 'bg-gray-200'
-                                        }`}
-                                    >
-                                        {button.label}
-                                        {gamepadState.buttons[button.index] && (
-                                            <span className="text-xs block">
-                                                Frame: {gamepadState.lastPressFrame[button.index]}
-                                            </span>
-                                        )}
-                                    </div>
-                                );
-                            })}
+                            {TRACKED_BUTTONS.map((button) => (
+                                <div
+                                    key={button.index}
+                                    className={`p-2 border rounded text-black ${
+                                        gamepadState.buttons[button.index] ? 'bg-green-500' : 'bg-gray-200'
+                                    }`}
+                                >
+                                    {button.label}
+                                    {gamepadState.buttons[button.index] && (
+                                        <span className="text-xs block">
+                                            Frame: {gamepadState.lastPressFrame[button.index]}
+                                        </span>
+                                    )}
+                                </div>
+                            ))}
                         </div>
                         <div className="flex items-center justify-center gap-4 mt-4">
                             <Image width={75} height={75} src={forwardArrow} alt="Forward arrow" />
