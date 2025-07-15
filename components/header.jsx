@@ -4,6 +4,7 @@ import logo from 'public/images/dorya.png';
 
 const navItems = [
     { linkText: 'Practice', href: '/' },
+    { linkText: 'Explanation', href: '/ewgf' },
     { linkText: 'Controller Setup', href: '/controller' }
 ];
 
