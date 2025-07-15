@@ -3,11 +3,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import logo from 'public/images/dorya.png';
 import { useRef, useEffect } from 'react';
+import { VolumeSlider } from './volume-slider';
 
 const navItems = [
     { linkText: 'Practice', href: '/' },
-    { linkText: 'Explanation', href: '/ewgf' },
-    { linkText: 'Controller Setup', href: '/controller' }
+    { linkText: 'Explanation', href: '/ewgf' }
 ];
 
 export function Header() {
@@ -27,6 +27,8 @@ export function Header() {
         if (audioRef.current) {
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
+            const storedVolume = localStorage.getItem('volume');
+            audioRef.current.volume = storedVolume ? parseFloat(storedVolume) : 0.75;
             audioRef.current.play().catch((e) => console.log('Audio playback failed:', e));
         }
     };
@@ -52,6 +54,7 @@ export function Header() {
                     ))}
                 </ul>
             )}
+            <VolumeSlider />
         </nav>
     );
 }

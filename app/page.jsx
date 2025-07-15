@@ -109,6 +109,8 @@ export default function Page() {
                                         if (audioRef.current) {
                                             audioRef.current.pause();
                                             audioRef.current.currentTime = 0;
+                                            const storedVolume = localStorage.getItem('volume');
+                                            audioRef.current.volume = storedVolume ? parseFloat(storedVolume) : 0.75;
                                             audioRef.current
                                                 .play()
                                                 .catch((e) => console.log('Audio playback failed:', e));
