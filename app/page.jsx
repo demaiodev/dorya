@@ -159,7 +159,7 @@ export default function Page() {
                         });
 
                         // Keep only the 10 most recent simultaneous presses
-                        const latestPresses = recentSimultaneousPresses.slice(-10);
+                        const latestPresses = recentSimultaneousPresses.slice(-5);
 
                         return {
                             ...prev,

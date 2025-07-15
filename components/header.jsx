@@ -7,7 +7,8 @@ import { VolumeSlider } from './volume-slider';
 
 const navItems = [
     { linkText: 'Practice', href: '/' },
-    { linkText: 'Explanation', href: '/ewgf' }
+    { linkText: 'Explanation', href: '/ewgf' },
+    { linkText: 'Settings', href: '/settings' }
 ];
 
 export function Header() {
