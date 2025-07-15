@@ -10,16 +10,33 @@ export default function Page() {
                     Wind God Fist if the player inputs the d/f input and the 2 input on the exact same frame.
                 </p>
                 <p>
-                    Due to the EWGF&apos;s versatile nature and speed, it is a vital asset in every Mishima
-                    player&apos;s arsenal, especially for Kazuya. The EWGF is the safest launcher for Mishimas and is a
-                    useful punishing tool after whiffing an attack of your opponent.
+                    For characters like Kazuya, mastering the EWGF is essential. Its unique combination of speed,
+                    safety, and launching power makes it the cornerstone of high-level Mishima offense, defining their
+                    relentless pressure and damage potential. Consistent EWGF execution is a key differentiator in
+                    competitive play.
                 </p>
-                <p>
-                    This app will help you practice the EWGF by showing you the input you need to perform, and
-                    displaying the input history of your controller.
-                </p>
-
-                <p>Under Construction</p>
+                <div className="flex flex-row gap-4 mt-4">
+                    <iframe
+                        width="560"
+                        height="315"
+                        src="https://www.youtube.com/embed/hXLVZe4Wjcw?si=VnysZw4xuENWm9V0"
+                        title="YouTube video player"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen
+                    ></iframe>
+                    <iframe
+                        width="560"
+                        height="315"
+                        src="https://www.youtube.com/embed/Dy2Y_bCnBmc?si=BPKtj1x5QclU5z3x"
+                        title="YouTube video player"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen
+                    ></iframe>
+                </div>
             </section>
         </div>
     );
