@@ -226,10 +226,11 @@ export default function Page() {
                                     >
                                         <Image width={100} height={100} src={button.img} alt={button.img} />
                                     </div>
-
-                                    <span className="text-xs block ">
-                                        Last pressed on frame: {gamepadState.lastPressFrame[button.index]}
-                                    </span>
+                                    {gamepadState.lastPressFrame[button.index] !== -1 && (
+                                        <span className="text-xs block ">
+                                            Last pressed on frame: {gamepadState.lastPressFrame[button.index]}
+                                        </span>
+                                    )}
                                 </div>
                             ))}
                         </div>
