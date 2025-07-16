@@ -14,7 +14,7 @@ const MAX_FRAMES = 999;
 const FRAME_RATE = 60;
 const FRAME_DURATION = 1000 / FRAME_RATE;
 const FADE_DURATION = 250;
-const SUGARCOAT_DIMENSIONS = {
+const SUCCESS_IMAGE_PROPERTIES = {
     width: 200,
     height: 200
 };
@@ -40,7 +40,8 @@ export default function Page() {
 
     // Initialize audio
     useEffect(() => {
-        audioRef.current = new Audio('/sounds/soundeffect.mp3');
+        const sound = localStorage.getItem('selectedSound') || 'sugarcoat';
+        audioRef.current = new Audio(`/sounds/${sound}.mp3`);
         return () => {
             if (audioRef.current) {
                 audioRef.current.pause();
@@ -58,6 +59,11 @@ export default function Page() {
             return () => clearTimeout(timer);
         }
     }, [showEffect]);
+
+    useEffect(() => {
+        const selectedImage = localStorage.getItem('selectedImage') || 'sugarcoat.jpg';
+        SUCCESS_IMAGE_PROPERTIES.src = selectedImage;
+    }, []);
 
     // Main gamepad handling
     useEffect(() => {
@@ -207,10 +213,10 @@ export default function Page() {
                         <div className="text-lg font-bold">Frame Counter: {gamepadState.currentFrame}</div>
                         <div style={fadeAnimation}>
                             <Image
-                                src={sugarcoat}
-                                alt="Sugarcoat effect"
-                                width={SUGARCOAT_DIMENSIONS.width}
-                                height={SUGARCOAT_DIMENSIONS.height}
+                                src={'/images/' + SUCCESS_IMAGE_PROPERTIES.src}
+                                alt={SUCCESS_IMAGE_PROPERTIES.src}
+                                width={SUCCESS_IMAGE_PROPERTIES.width}
+                                height={SUCCESS_IMAGE_PROPERTIES.height}
                                 className={`transition-opacity duration-${FADE_DURATION} ${
                                     showEffect ? 'opacity-100' : 'opacity-0'
                                 }`}

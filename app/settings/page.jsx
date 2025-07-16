@@ -1,31 +1,55 @@
 'use client';
+import { useRef, useState, useEffect } from 'react';
+
 export default function Page() {
+    // Use state to track selected values
+    const [selectedSound, setSelectedSound] = useState('sugarcoat');
+    const [selectedImage, setSelectedImage] = useState('sugarcoat');
+
+    // Load saved values on component mount
+    useEffect(() => {
+        const savedSound = localStorage.getItem('selectedSound');
+        const savedImage = localStorage.getItem('selectedImage');
+        if (savedSound) setSelectedSound(savedSound);
+        if (savedImage) setSelectedImage(savedImage);
+    }, []);
+
     const soundSelections = [
         {
             label: "I'm not gonna sugarcoat it",
-            value: 'sugarcoat',
-            defaultChecked: true
+            value: 'sugarcoat'
         },
         {
             label: 'Dorya',
-            value: 'dorya',
-            defaultChecked: false
+            value: 'dorya'
         }
     ];
+
     const imageSelections = [
         {
             label: 'Sugarcoat',
-            value: 'sugarcoat',
-            src: '/images/sugarcoat.jpg',
-            defaultChecked: true
+            value: 'sugarcoat.jpg',
+            src: '/images/sugarcoat.jpg'
         },
         {
             label: 'Dorya',
-            value: 'dorya',
-            src: '/images/dorya.png',
-            defaultChecked: false
+            value: 'dorya.png',
+            src: '/images/dorya.png'
         }
     ];
+
+    const handleSoundChange = (e) => {
+        const value = e.target.value;
+        setSelectedSound(value);
+        localStorage.setItem('selectedSound', value);
+    };
+
+    const handleImageChange = (e) => {
+        const value = e.target.value;
+        setSelectedImage(value);
+        localStorage.setItem('selectedImage', value);
+    };
+
     return (
         <div className="flex flex-col gap-12 sm:gap-16">
             <main className="flex flex-col gap-4">
@@ -39,8 +63,9 @@ export default function Page() {
                                 id={sound.value}
                                 name="sound"
                                 value={sound.value}
-                                defaultChecked={sound.defaultChecked}
+                                checked={selectedSound === sound.value}
                                 className="cursor-pointer"
+                                onChange={handleSoundChange}
                             />
                             <label htmlFor={sound.value} className="cursor-pointer">
                                 {sound.label}
@@ -57,8 +82,9 @@ export default function Page() {
                                 id={image.value}
                                 name="image"
                                 value={image.value}
-                                defaultChecked={image.defaultChecked}
+                                checked={selectedImage === image.value}
                                 className="cursor-pointer"
+                                onChange={handleImageChange}
                             />
                             <img src={image.src} alt={image.label} className="w-16 h-16" />
                         </div>
